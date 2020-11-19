@@ -1,0 +1,47 @@
+-- 18/11/2020
+-- Sesion 6
+-- Reto 1
+Con base en el ejemplo 1, modifica el agrupamiento para que muestre el costo promedio por habitación por país de las propiedades de tipo casa.
+
+[{$match: {
+    property_type: "House",
+    bedrooms: {$gte: 1}
+  }}, {$addFields: {
+    precio_recamara: {$divide: ["$price", "$bedrooms"]}
+  }}, {$group: {
+    _id: "$address.country_code",
+    cantidad_recamaras: {
+      $sum: 1
+    },
+    precio_total:{
+      $sum: "$precio_recamara"
+    }
+  }}, {$addFields: {
+    precio_promedio: {$trunc: [
+      {$divide: ["$precio_total", "$cantidad_recamaras"]},
+      2]}
+  }}, {$sort: {
+    precio_promedio: -1
+  }}, {$project: {
+    _id: 1,
+    precio_promedio: 1
+  }}]
+
+--Reto 2
+Usando las colecciones comments y users, se requiere conocer el correo y contraseña de cada persona que realizó un comentario. Construye un pipeline que genere como resultado estos datos.
+[{$lookup: {
+    from: 'users',
+    localField: 'name',
+    foreignField: 'name',
+    as: 'usuario'
+  }}, {$addFields: {
+    usuario_real: { $arrayElemAt: ["$usuario", 0 ] }
+  }}, {$project: {
+    _id: 0,
+    nombre: "$usuario_real.name",
+    email: "$usuario_real.email",
+    contrasena: "$usuario_real.password",
+  }}]
+
+--Reto 3
+Save -> Create View -> Datos_usuario_que_comentaron
